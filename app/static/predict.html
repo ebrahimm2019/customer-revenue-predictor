@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Customer Revenue</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: #0C0F1A; color: #E8E9F0; line-height: 1.6; }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        
+        header { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 40px; }
+        nav { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        .logo { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: #D4A853; text-decoration: none; }
+        .nav-links a { color: #9BA1B8; text-decoration: none; margin-left: 30px; font-weight: 500; }
+        
+        h1 { font-family: 'Fraunces', serif; font-size: 38px; margin-bottom: 10px; }
+        .subtitle { color: #9BA1B8; margin-bottom: 40px; }
+        
+        .card { background: #141828; padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 30px; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #9BA1B8; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; background: #1C2038; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #E8E9F0; font-family: 'DM Sans', sans-serif; font-size: 14px; }
+        .form-group input:focus { outline: none; border-color: #3B82F6; }
+        
+        .btn { padding: 14px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 16px; width: 100%; transition: all 0.2s; }
+        .btn-primary { background: #3B82F6; color: white; }
+        .btn-primary:hover { background: #2563EB; }
+        .btn-primary:disabled { background: #1E3A8A; opacity: 0.5; cursor: not-allowed; }
+        
+        .result-card { background: #141828; padding: 30px; border-radius: 12px; border-left: 4px solid; margin-top: 30px; display: none; }
+        .result-card h2 { font-family: 'Fraunces', serif; font-size: 42px; margin-bottom: 10px; }
+        .result-card .segment { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+        .result-card .confidence { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .result-card .insights { margin-top: 20px; }
+        .result-card .insight { background: rgba(59,130,246,0.08); padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #3B82F6; font-size: 14px; }
+        .result-card .action { background: rgba(212,168,83,0.08); padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid rgba(212,168,83,0.3); }
+        .result-card .action strong { color: #D4A853; }
+        
+        .risk-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-left: 10px; }
+        .risk-low { background: rgba(45,134,89,0.15); color: #2D8659; }
+        .risk-medium { background: rgba(59,130,246,0.15); color: #3B82F6; }
+        .risk-high { background: rgba(220,104,67,0.15); color: #DC6843; }
+        .risk-critical { background: rgba(220,67,67,0.15); color: #DC4343; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; }
+        .tab { padding: 10px 20px; background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #9BA1B8; cursor: pointer; font-weight: 500; }
+        .tab.active { background: #3B82F6; color: white; border-color: #3B82F6; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .info-box { background: rgba(59,130,246,0.08); padding: 15px; border-radius: 8px; border-left: 3px solid #3B82F6; margin-bottom: 20px; font-size: 14px; color: #9BA1B8; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" class="logo">Revenue Predictor</a>
+            <div class="nav-links">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/predict">Predict</a>
+                <a href="/insights">Insights</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Predict Customer Revenue</h1>
+        <p class="subtitle">Enter customer features to predict future revenue with confidence intervals</p>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('simple')">Simple Form</div>
+            <div class="tab" onclick="switchTab('advanced')">Advanced (All Features)</div>
+        </div>
+
+        <div id="simple-tab" class="tab-content active">
+            <div class="card">
+                <div class="info-box">
+                    💡 <strong>Quick Start:</strong> Enter the 5 most important features. We'll estimate the rest with smart defaults.
+                </div>
+                
+                <form id="simpleForm" onsubmit="predictSimple(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Customer ID (Optional)</label>
+                            <input type="text" id="customer_id" placeholder="e.g., 12345">
+                        </div>
+                        <div class="form-group">
+                            <label>Frequency (Number of Purchases) *</label>
+                            <input type="number" id="frequency" required min="0" value="8">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Historical Spending (£) *</label>
+                            <input type="number" id="monetary_total" required min="0" step="0.01" value="2500">
+                        </div>
+                        <div class="form-group">
+                            <label>Recency (Days Since Last Purchase) *</label>
+                            <input type="number" id="recency" required min="0" value="45">
+                        </div>
+                        <div class="form-group">
+                            <label>Revenue Last 90 Days (£)</label>
+                            <input type="number" id="rev_90d" min="0" step="0.01" value="800">
+                        </div>
+                        <div class="form-group">
+                            <label>UK Customer</label>
+                            <select id="is_uk">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="predictBtn">
+                        Predict Revenue →
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="advanced-tab" class="tab-content">
+            <div class="card">
+                <p style="color: #9BA1B8; margin-bottom: 20px;">Advanced mode: Enter all 30 features for maximum accuracy</p>
+                <form id="advancedForm" onsubmit="predictAdvanced(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Frequency *</label>
+                            <input type="number" id="adv_frequency" required min="0" value="8">
+                        </div>
+                        <div class="form-group">
+                            <label>Monetary Total (£) *</label>
+                            <input type="number" id="adv_monetary_total" required min="0" step="0.01" value="2500">
+                        </div>
+                        <div class="form-group">
+                            <label>Recency (days) *</label>
+                            <input type="number" id="adv_recency" required min="0" value="45">
+                        </div>
+                        <div class="form-group">
+                            <label>Tenure Days</label>
+                            <input type="number" id="tenure_days" min="1" value="300">
+                        </div>
+                        <div class="form-group">
+                            <label>Customer Age (days)</label>
+                            <input type="number" id="customer_age" min="1" value="400">
+                        </div>
+                        <div class="form-group">
+                            <label>Revenue 30d (£)</label>
+                            <input type="number" id="adv_rev_30d" min="0" step="0.01" value="150">
+                        </div>
+                        <div class="form-group">
+                            <label>Revenue 90d (£)</label>
+                            <input type="number" id="adv_rev_90d" min="0" step="0.01" value="800">
+                        </div>
+                        <div class="form-group">
+                            <label>Revenue 180d (£)</label>
+                            <input type="number" id="rev_180d" min="0" step="0.01" value="1500">
+                        </div>
+                        <div class="form-group">
+                            <label>Revenue 365d (£)</label>
+                            <input type="number" id="rev_365d" min="0" step="0.01" value="2300">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Predict Revenue (Advanced) →</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="result" class="result-card"></div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            
+            if (tab === 'simple') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('simple-tab').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('advanced-tab').classList.add('active');
+            }
+        }
+
+        async function predictSimple(e) {
+            e.preventDefault();
+            const btn = document.getElementById('predictBtn');
+            btn.disabled = true;
+            btn.textContent = 'Predicting...';
+            
+            const data = {
+                customer_id: document.getElementById('customer_id').value || 'unknown',
+                frequency: parseInt(document.getElementById('frequency').value),
+                monetary_total: parseFloat(document.getElementById('monetary_total').value),
+                recency: parseInt(document.getElementById('recency').value),
+                rev_90d: parseFloat(document.getElementById('rev_90d').value) || 0,
+                is_uk: document.getElementById('is_uk').value === 'true'
+            };
+            
+            try {
+                const res = await fetch('/api/predict/single', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                displayResult(result);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Predict Revenue →';
+            }
+        }
+
+        async function predictAdvanced(e) {
+            e.preventDefault();
+            // Similar logic for advanced form
+            alert('Advanced prediction - implement similar to simple form with all fields');
+        }
+
+        function displayResult(result) {
+            const resultDiv = document.getElementById('result');
+            
+            const segmentColors = {
+                'VIP': '#D4A853',
+                'High Value': '#2D8659',
+                'Growth': '#3B82F6',
+                'At Risk': '#DC6843'
+            };
+            
+            const riskClasses = {
+                'Low': 'risk-low',
+                'Medium': 'risk-medium',
+                'High': 'risk-high',
+                'Critical': 'risk-critical'
+            };
+            
+            resultDiv.style.borderColor = segmentColors[result.segment];
+            resultDiv.innerHTML = `
+                <h2 style="color: ${segmentColors[result.segment]}">£${result.predicted_revenue.toFixed(0)}</h2>
+                <div class="segment">
+                    ${result.segment} Customer
+                    <span class="risk-badge ${riskClasses[result.risk_level]}">${result.risk_level} Risk</span>
+                </div>
+                
+                <div class="confidence">
+                    <strong>Confidence Range:</strong> £${result.confidence_interval.lower.toFixed(0)} - £${result.confidence_interval.upper.toFixed(0)}<br>
+                    <small style="color: #9BA1B8;">Based on model MAE (Mean Absolute Error)</small>
+                </div>
+                
+                <div><strong>Segment:</strong> ${result.segment_description}</div>
+                
+                <div class="insights">
+                    <strong style="display: block; margin-bottom: 10px;">Key Insights:</strong>
+                    ${result.insights.map(insight => `<div class="insight">${insight}</div>`).join('')}
+                </div>
+                
+                <div class="action">
+                    <strong>Recommended Action:</strong><br>
+                    ${result.recommended_action}
+                </div>
+            `;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>

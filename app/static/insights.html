@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Insights - Customer Revenue Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: #0C0F1A; color: #E8E9F0; line-height: 1.6; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        
+        header { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 40px; }
+        nav { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .logo { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: #D4A853; text-decoration: none; }
+        .nav-links a { color: #9BA1B8; text-decoration: none; margin-left: 30px; font-weight: 500; }
+        
+        h1 { font-family: 'Fraunces', serif; font-size: 38px; margin-bottom: 10px; }
+        .subtitle { color: #9BA1B8; margin-bottom: 40px; }
+        
+        .card { background: #141828; padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 30px; }
+        .card h2 { font-size: 24px; margin-bottom: 20px; }
+        
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric { text-align: center; padding: 20px; background: rgba(59,130,246,0.08); border-radius: 10px; border: 1px solid rgba(59,130,246,0.2); }
+        .metric .label { color: #9BA1B8; font-size: 13px; margin-bottom: 8px; }
+        .metric .value { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; color: #3B82F6; }
+        
+        .feature-bars { margin-top: 20px; }
+        .feature-bar { margin-bottom: 20px; }
+        .feature-bar .name { color: #E8E9F0; font-size: 14px; margin-bottom: 6px; font-weight: 500; }
+        .feature-bar .bar-container { background: rgba(255,255,255,0.05); height: 40px; border-radius: 8px; overflow: hidden; position: relative; }
+        .feature-bar .bar-fill { background: linear-gradient(90deg, #3B82F6, #2563EB); height: 100%; display: flex; align-items: center; padding: 0 12px; transition: width 1s ease; }
+        .feature-bar .bar-fill .value { color: white; font-weight: 600; font-size: 13px; }
+        
+        .info-box { background: rgba(59,130,246,0.08); padding: 20px; border-radius: 10px; border-left: 4px solid #3B82F6; margin: 20px 0; }
+        .info-box strong { color: #3B82F6; }
+        
+        .interpretation { background: rgba(212,168,83,0.08); padding: 20px; border-radius: 10px; border-left: 4px solid #D4A853; }
+        .interpretation h3 { color: #D4A853; margin-bottom: 10px; font-size: 18px; }
+        .interpretation ul { margin-left: 20px; color: #9BA1B8; }
+        .interpretation li { margin-bottom: 8px; line-height: 1.6; }
+        
+        .loading { text-align: center; padding: 40px; color: #9BA1B8; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" class="logo">Revenue Predictor</a>
+            <div class="nav-links">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/predict">Predict</a>
+                <a href="/insights">Insights</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Model Insights</h1>
+        <p class="subtitle">Understanding how the prediction model works</p>
+
+        <div class="card">
+            <h2>Model Performance Metrics</h2>
+            <div class="metrics-grid" id="metrics">
+                <div class="metric">
+                    <div class="label">R² Score</div>
+                    <div class="value">0.9935</div>
+                </div>
+                <div class="metric">
+                    <div class="label">RMSE</div>
+                    <div class="value">£259</div>
+                </div>
+                <div class="metric">
+                    <div class="label">MAE</div>
+                    <div class="value">£170</div>
+                </div>
+                <div class="metric">
+                    <div class="label">Training Data</div>
+                    <div class="value">4,249</div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <strong>What these metrics mean:</strong><br>
+                • <strong>R² (0.9935):</strong> The model explains 99.35% of variance in customer revenue — extremely high accuracy<br>
+                • <strong>RMSE (£259):</strong> Root mean square error — typical prediction deviation<br>
+                • <strong>MAE (£170):</strong> Mean absolute error — on average, predictions are within ±£170 of actual revenue
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Top 10 Most Important Features</h2>
+            <p style="color: #9BA1B8; margin-bottom: 20px;">These customer attributes have the most influence on revenue predictions</p>
+            
+            <div id="features-loading" class="loading">Loading feature importance...</div>
+            <div id="features-content" style="display: none;">
+                <div class="feature-bars" id="feature-bars"></div>
+                
+                <div class="interpretation">
+                    <h3>💡 Business Interpretation</h3>
+                    <ul>
+                        <li><strong>Monetary Total:</strong> Past spending is the #1 predictor — customers who spent more historically will likely continue</li>
+                        <li><strong>Recent Activity (90d revenue):</strong> Recent behavior matters more than distant history</li>
+                        <li><strong>Frequency:</strong> Regular customers are more predictable and valuable</li>
+                        <li><strong>Recency:</strong> How long since last purchase indicates engagement level</li>
+                        <li><strong>Basket Metrics:</strong> Average order value and basket size show customer value per transaction</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>How to Use Predictions</h2>
+            
+            <h3 style="font-size: 18px; margin: 20px 0 10px; color: #3B82F6;">✓ Confidence Intervals</h3>
+            <p style="color: #9BA1B8; margin-bottom: 15px;">
+                Every prediction includes a confidence range (predicted ± MAE). For example, a prediction of £1,000 with MAE of £170 means the true value is likely between £830-£1,170. Use the full range for planning rather than treating predictions as exact.
+            </p>
+            
+            <h3 style="font-size: 18px; margin: 20px 0 10px; color: #3B82F6;">✓ Segment-Based Actions</h3>
+            <p style="color: #9BA1B8; margin-bottom: 15px;">
+                <strong>VIP (£10K+):</strong> Assign dedicated account managers, offer exclusive perks<br>
+                <strong>High Value (£2K-£10K):</strong> Early product access, premium support<br>
+                <strong>Growth (£500-£2K):</strong> Upsell campaigns, loyalty programs<br>
+                <strong>At Risk (<£500):</strong> Re-engagement emails, win-back offers
+            </p>
+            
+            <h3 style="font-size: 18px; margin: 20px 0 10px; color: #3B82F6;">✓ Risk Assessment</h3>
+            <p style="color: #9BA1B8; margin-bottom: 15px;">
+                Combine predictions with recency to identify churn risk. High recency (180+ days) + low predicted revenue = critical churn risk. Act immediately with targeted campaigns.
+            </p>
+            
+            <h3 style="font-size: 18px; margin: 20px 0 10px; color: #3B82F6;">✓ Batch Processing</h3>
+            <p style="color: #9BA1B8;">
+                For operational workflows, use the batch API endpoint or CSV upload to predict revenue for your entire customer base. Integrate with your CRM or BI tools for automated reporting.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Load feature importance from API
+        async function loadFeatureImportance() {
+            try {
+                const res = await fetch('/api/model/features');
+                const data = await res.json();
+                
+                document.getElementById('features-loading').style.display = 'none';
+                document.getElementById('features-content').style.display = 'block';
+                
+                const barsContainer = document.getElementById('feature-bars');
+                const features = data.features.slice(0, 10);
+                const maxImportance = features[0].importance;
+                
+                features.forEach((feature, index) => {
+                    const percentage = (feature.importance / maxImportance * 100);
+                    
+                    const featureBar = document.createElement('div');
+                    featureBar.className = 'feature-bar';
+                    featureBar.innerHTML = `
+                        <div class="name">${index + 1}. ${feature.description || feature.feature}</div>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="width: ${percentage}%">
+                                <span class="value">${(feature.importance * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    `;
+                    barsContainer.appendChild(featureBar);
+                });
+            } catch (error) {
+                document.getElementById('features-loading').innerHTML = 
+                    '<p style="color: #DC6843;">Error loading feature importance. Model may need to be trained first.</p>';
+            }
+        }
+        
+        // Load on page load
+        loadFeatureImportance();
+    </script>
+</body>
+</html>
