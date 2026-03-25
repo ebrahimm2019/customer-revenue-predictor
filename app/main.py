@@ -6,8 +6,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from .config import settings
-from .api import router
+import sys
+from pathlib import Path
+
+# Add parent directory to path for direct execution
+if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+
+try:
+    from .config import settings
+    from .api import router
+except ImportError:
+    from app.config import settings
+    from app.api import router
 
 # Create FastAPI app
 app = FastAPI(

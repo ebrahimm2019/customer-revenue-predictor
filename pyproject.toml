@@ -30,6 +30,3 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 dev-dependencies = []
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/customer_revenue_predictor"]
